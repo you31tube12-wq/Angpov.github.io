@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="km">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🧧 អាំងបាវសំណាង 2026</title>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
+    <style>
+        :root { --red: #d32f2f; --gold: #ffca28; --blue: #0088cc; --dark: #1a1a1a; }
+        body { background: radial-gradient(circle, #ff5f6d, #ffc371); font-family: 'Khmer OS Battambang', sans-serif; margin: 0; display: flex; justify-content: center; align-items: center; min-height: 100vh; }
+        
+        .container { background: white; padding: 25px; border-radius: 25px; box-shadow: 0 15px 40px rgba(0,0,0,0.2); width: 90%; max-width: 350px; text-align: center; border: 4px solid var(--gold); }
+        
+        /* Modal Style (សម្រាប់ Ads និង Login) */
+        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); z-index: 999; display: flex; justify-content: center; align-items: center; }
+        .popup-box { background: white; width: 85%; max-width: 320px; border-radius: 20px; padding: 25px; border: 3px solid var(--gold); text-align: center; animation: zoomIn 0.3s ease; }
+        
+        @keyframes zoomIn { from { transform: scale(0.8); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+
+        .ad-item { display: flex; align-items: center; gap: 10px; background: #f9f9f9; padding: 12px; border-radius: 12px; text-decoration: none; color: #333; border: 1px solid #ddd; margin-bottom: 8px; font-size: 13px; font-weight: bold; }
+        .ad-item.clicked { background: #e8f5e9; border-color: #4caf50; opacity: 0.6; pointer-events: none; }
+        
+        /* Admin Login UI */
+        .pass-input { width: 100%; padding: 12px; margin: 15px 0; border-radius: 10px; border: 2px solid #eee; text-align: center; font-size: 20px; letter-spacing: 5px; outline: none; transition: 0.3s; }
+        .pass-input:focus { border-color: var(--gold); box-shadow: 0 0 10px rgba(255, 202, 40, 0.3); }
+
+        .angpao-box { width: 110px; height: 170px; background: linear-gradient(145deg, var(--red), #8b0000); border-radius: 15px; margin: 20px auto; cursor: pointer; display: flex; justify-content: center; align-items: center; border: 3px solid var(--gold); box-shadow: 0 8px 15px rgba(0,0,0,0.3); }
+        .angpao-box::after { content: "福"; color: var(--gold); font-size: 40px; border: 2px solid var(--gold); border-radius: 50%; width: 60px; height: 60px; display: flex; justify-content: center; align-items: center; }
+
+        #adminPanel { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 95%; max-width: 400px; background: white; border: 4px solid var(--gold); border-radius: 25px; padding: 20px; z-index: 2000; display: none; box-sizing: border-box; max-height: 90vh; overflow-y: auto; box-shadow: 0 0 100px rgba(0,0,0,0.5); }
+        .admin-trigger { position: fixed; bottom: 15px; right: 15px; opacity: 0.3; cursor: pointer; font-size: 22px; z-index: 998; background: white; padding: 10px; border-radius: 50%; display: flex; }
+        
+        .btn-action { background: var(--gold); border: none; padding: 12px; border-radius: 10px; font-weight: bold; cursor: pointer; width: 100%; margin-top: 10px; color: var(--dark); }
+        .reward-table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 12px; }
+        .reward-table th, .reward-table td { border: 1px solid #eee; padding: 8px; text-align: left; }
+        .hidden { display: none; }
+    </style>
+</head>
+<body>
+
+    <div id="adsOverlay" class="modal-overlay">
+        <div class="popup-box">
+            <h3 style="color: var(--red); margin-top:0;">🧧 បើកសិទ្ធិចូលលេង</h3>
+            <p style="font-size:11px; color:#666;">ចុចលើ Channel ទាំង ៤ រួចរង់ចាំ ៥វិនាទី</p>
+            <div id="timerStatus" style="font-size:13px; color:var(--red); font-weight:bold; margin-bottom:10px; min-height: 18px;"></div>
+            <div id="adLinks">
+                <a href="https://t.me/I_AM_RA2" target="_blank" class="ad-item" onclick="handleAdClick(this)">👤 I AM RA Official</a>
+                <a href="https://t.me/CHANNEL_QUIZ11" target="_blank" class="ad-item" onclick="handleAdClick(this)">🧩 Quiz Channel</a>
+                <a href="https://t.me/Commentary19_bot" target="_blank" class="ad-item" onclick="handleAdClick(this)">🤖 Commentary Bot</a>
+                <a href="https://t.me/History_of_science18_bot" target="_blank" class="ad-item" onclick="handleAdClick(this)">📜 History & Science</a>
+            </div>
+            <button id="finalPlayBtn" class="btn-action" style="display:none; background:#28a745; color:white;" onclick="enterGame()">ចូលលេងឥឡូវនេះ 🧧</button>
+        </div>
+    </div>
+
+    <div id="loginModal" class="modal-overlay" style="display: none;">
+        <div class="popup-box">
+            <h3 style="margin-top:0;">🛂 Admin Login</h3>
+            <p style="font-size: 12px; color: #666;">សូមបញ្ចូលលេខកូដសម្ងាត់ដើម្បីគ្រប់គ្រង</p>
+            <input type="password" id="adminPassInput" class="pass-input" placeholder="••••">
+            <button class="btn-action" onclick="verifyAdmin()">ចូលទៅកាន់ Control</button>
+            <button class="btn-action" style="background:#eee; margin-top:8px;" onclick="closeLogin()">បោះបង់</button>
+        </div>
+    </div>
+
+    <div class="container">
+        <h1 style="color: var(--red); font-size: 18px;">🧧 អាំងបាវសំណាង 2026</h1>
+        <div id="game-view">
+            <div class="angpao-box" onclick="openPao()"></div>
+            <p style="font-size:13px; color:#666;">ចុចលើស្រោមដើម្បីផ្សងសំណាង</p>
+        </div>
+        <div id="result-view" class="hidden">
+            <h2 style="color:#4caf50; margin:0;">🎊 ហេង ហេង! 🎊</h2>
+            <div id="reward-text" style="font-size:28px; font-weight:bold; color:var(--red); margin:15px 0;"></div>
+            <a href="https://t.me/Im_RA12" target="_blank" style="color:var(--blue); font-weight:bold; text-decoration:none;">🗨️ ទំនាក់ទំនងបើករង្វាន់</a>
+        </div>
+    </div>
+
+    <div id="adminPanel">
+        <h3 style="margin-top:0;">🛠️ Admin - គ្រប់គ្រងស្តុក</h3>
+        <div style="background:#f9f9f9; padding:15px; border-radius:15px; margin-bottom:15px; border: 1px solid #ddd;">
+            <input type="text" id="newRewardName" placeholder="ឈ្មោះរង្វាន់ (ឧទាហរណ៍៖ លុយ ១ម៉ឺន)" style="width:100%; padding:8px; margin-bottom:5px;">
+            <input type="number" id="newRewardStock" placeholder="ចំនួនស្តុក" style="width:100%; padding:8px;">
+            <button class="btn-action" onclick="addReward()">ថែមរង្វាន់ថ្មី</button>
+        </div>
+        <table class="reward-table">
+            <thead><tr><th>រង្វាន់</th><th>ស្តុក</th><th>សកម្មភាព</th></tr></thead>
+            <tbody id="rewardListBody"></tbody>
+        </table>
+        <button onclick="resetSelf()" style="margin-top:15px; width:100%; border:none; background:#ff4444; color:white; padding:12px; border-radius:10px; font-weight:bold;">🔄 Reset ការលេងរបស់អ្នក</button>
+        <button onclick="document.getElementById('adminPanel').style.display='none'" style="margin-top:8px; width:100%; border:none; background:#eee; padding:10px; border-radius:10px;">បិទ</button>
+    </div>
+
+    <div class="admin-trigger" onclick="openLogin()">🛂</div>
+
+    <script>
+        // --- Firebase Init ---
+        const firebaseConfig = {
+            apiKey: "AIzaSyD0CoOErw8unJ2lGF3K4BqTAnq0eFq3ycI",
+            authDomain: "myessayapp.firebaseapp.com",
+            databaseURL: "https://myessayapp-default-rtdb.firebaseio.com",
+            projectId: "myessayapp",
+            storageBucket: "myessayapp.firebasestorage.app",
+            messagingSenderId: "410054064875",
+            appId: "1:410054064875:web:7d073851f478564eb39cae"
+        };
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.database();
+
+        let rewardsData = {};
+        const ADMIN_PASS = "0319995568";
+
+        db.ref('prizes').on('value', (snapshot) => {
+            rewardsData = snapshot.val() || {};
+            renderAdminTable();
+        });
+
+        // --- Ad Logic ---
+        let clicked = 0;
+        function handleAdClick(el) {
+            if (el.classList.contains('clicked')) return;
+            let time = 5;
+            const status = document.getElementById('timerStatus');
+            const itv = setInterval(() => {
+                status.innerText = `⏳ រង់ចាំ ${time} វិនាទី...`;
+                time--;
+                if(time < 0) {
+                    clearInterval(itv);
+                    status.innerText = "✅ រួចរាល់!";
+                    el.classList.add('clicked');
+                    clicked++;
+                    if(clicked >= 4) document.getElementById('finalPlayBtn').style.display = 'block';
+                }
+            }, 1000);
+        }
+        function enterGame() { document.getElementById('adsOverlay').style.display='none'; }
+
+        // --- Login Modal Logic ---
+        function openLogin() { document.getElementById('loginModal').style.display = 'flex'; }
+        function closeLogin() { document.getElementById('loginModal').style.display = 'none'; document.getElementById('adminPassInput').value = ''; }
+        function verifyAdmin() {
+            const pass = document.getElementById('adminPassInput').value;
+            if(pass === ADMIN_PASS) {
+                closeLogin();
+                document.getElementById('adminPanel').style.display = 'block';
+            } else {
+                alert("លេខកូដសម្ងាត់មិនត្រឹមត្រូវ!");
+                document.getElementById('adminPassInput').value = '';
+            }
+        }
+
+        // --- Game Logic ---
+        function openPao() {
+            if(localStorage.getItem('played_2026')) return;
+            let available = Object.keys(rewardsData).filter(id => rewardsData[id].stock > 0);
+            if(available.length === 0) { alert("រង្វាន់ត្រូវបានបើកអស់ហើយ!"); return; }
+
+            let winId = available[Math.floor(Math.random() * available.length)];
+            let winName = rewardsData[winId].name;
+
+            db.ref('prizes/' + winId).update({ stock: rewardsData[winId].stock - 1 });
+            localStorage.setItem('played_2026', 'true');
+            localStorage.setItem('win_2026', winName);
+            showResult(winName);
+        }
+
+        function showResult(txt) {
+            document.getElementById('game-view').classList.add('hidden');
+            document.getElementById('result-view').classList.remove('hidden');
+            document.getElementById('reward-text').innerText = txt;
+        }
+
+        // --- Admin Controls ---
+        function renderAdminTable() {
+            const body = document.getElementById('rewardListBody');
+            body.innerHTML = "";
+            Object.keys(rewardsData).forEach(id => {
+                body.innerHTML += `<tr>
+                    <td>${rewardsData[id].name}</td>
+                    <td><input type="number" value="${rewardsData[id].stock}" onchange="updateStock('${id}', this.value)" style="width:50px;"></td>
+                    <td><button onclick="deleteReward('${id}')" style="color:red; border:none; background:none; cursor:pointer;">លុប</button></td>
+                </tr>`;
+            });
+        }
+        function addReward() {
+            const name = document.getElementById('newRewardName').value;
+            const stock = parseInt(document.getElementById('newRewardStock').value);
+            if(name && !isNaN(stock)) {
+                db.ref('prizes').push({ name, stock });
+                document.getElementById('newRewardName').value = "";
+                document.getElementById('newRewardStock').value = "";
+            }
+        }
+        function updateStock(id, val) { db.ref('prizes/' + id).update({ stock: parseInt(val) }); }
+        function deleteReward(id) { if(confirm("លុបរង្វាន់នេះ?")) db.ref('prizes/' + id).remove(); }
+        function resetSelf() { localStorage.removeItem('played_2026'); location.reload(); }
+
+        window.onload = () => {
+            if(localStorage.getItem('played_2026')) {
+                enterGame();
+                showResult(localStorage.getItem('win_2026'));
+            }
+        };
+    </script>
+</body>
+  </html>
+
